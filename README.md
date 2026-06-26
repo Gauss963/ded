@@ -14,7 +14,7 @@
 
 ```console
 $ ./build.sh
-$ ./ded src/main.c
+$ ./build/ded src/main.c
 ```
 
 ## Windows MSVC

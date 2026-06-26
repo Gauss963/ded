@@ -1,5 +1,7 @@
 te
 ded
+build/
+ded.dSYM/
 SDL2
 *.exe
 *.obj

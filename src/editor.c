@@ -21,6 +21,18 @@ static bool file_path_is_pdf(const char *file_path)
     return dot[strlen(ext)] == '\0';
 }
 
+static bool file_has_pdf_magic(const char *file_path)
+{
+    char magic[5] = {0};
+    FILE *f = fopen(file_path, "rb");
+    if (f == NULL) return false;
+
+    bool result = fread(magic, 1, sizeof(magic), f) == sizeof(magic)
+               && memcmp(magic, "%PDF-", sizeof(magic)) == 0;
+    fclose(f);
+    return result;
+}
+
 void editor_backspace(Editor *e)
 {
     if (e->searching) {
@@ -83,7 +95,7 @@ Errno editor_load_from_file(Editor *e, const char *file_path)
 {
     printf("Loading %s\n", file_path);
 
-    if (file_path_is_pdf(file_path)) {
+    if (file_path_is_pdf(file_path) || file_has_pdf_magic(file_path)) {
         e->mode = EDITOR_MODE_PDF;
         e->selection = false;
         e->searching = false;

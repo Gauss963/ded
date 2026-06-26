@@ -15,3 +15,4 @@ fi
 
 mkdir -p build
 $CC $CFLAGS `pkg-config --cflags $PKGS` -o "$OUT" $SRC $LIBS `pkg-config --libs $PKGS`
+cp "$OUT" ded

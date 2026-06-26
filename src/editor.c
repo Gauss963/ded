@@ -1,10 +1,25 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <errno.h>
 #include <string.h>
 #include "./editor.h"
 #include "./common.h"
+
+static bool file_path_is_pdf(const char *file_path)
+{
+    const char *dot = strrchr(file_path, '.');
+    if (dot == NULL) return false;
+
+    const char *ext = ".pdf";
+    for (size_t i = 0; ext[i] != '\0'; ++i) {
+        if (dot[i] == '\0') return false;
+        if (tolower(dot[i]) != ext[i]) return false;
+    }
+
+    return dot[strlen(ext)] == '\0';
+}
 
 void editor_backspace(Editor *e)
 {
@@ -68,6 +83,21 @@ Errno editor_load_from_file(Editor *e, const char *file_path)
 {
     printf("Loading %s\n", file_path);
 
+    if (file_path_is_pdf(file_path)) {
+        e->mode = EDITOR_MODE_PDF;
+        e->selection = false;
+        e->searching = false;
+        e->data.count = 0;
+        e->tokens.count = 0;
+        e->lines.count = 0;
+        pdf_viewer_open(&e->pdf, file_path);
+        e->file_path.count = 0;
+        sb_append_cstr(&e->file_path, file_path);
+        sb_append_null(&e->file_path);
+        return 0;
+    }
+
+    e->mode = EDITOR_MODE_TEXT;
     e->data.count = 0;
     Errno err = read_entire_file(file_path, &e->data);
     if (err != 0) return err;
@@ -81,6 +111,21 @@ Errno editor_load_from_file(Editor *e, const char *file_path)
     sb_append_null(&e->file_path);
 
     return 0;
+}
+
+bool editor_is_pdf(const Editor *e)
+{
+    return e->mode == EDITOR_MODE_PDF;
+}
+
+void editor_pdf_next_page(Editor *e)
+{
+    if (editor_is_pdf(e)) pdf_viewer_next_page(&e->pdf);
+}
+
+void editor_pdf_prev_page(Editor *e)
+{
+    if (editor_is_pdf(e)) pdf_viewer_prev_page(&e->pdf);
 }
 
 size_t editor_cursor_row(const Editor *e)
@@ -257,6 +302,11 @@ const char *editor_line_starts_with_one_of(Editor *e, size_t row, size_t col, co
 
 void editor_render(SDL_Window *window, Free_Glyph_Atlas *atlas, Simple_Renderer *sr, Editor *editor)
 {
+    if (editor_is_pdf(editor)) {
+        pdf_viewer_render(&editor->pdf, window, atlas, sr);
+        return;
+    }
+
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
 

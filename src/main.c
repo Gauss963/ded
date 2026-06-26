@@ -260,6 +260,10 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_F2: {
+                        if (editor_is_pdf(&editor)) {
+                            flash_error("Saving a PDF from ded? Audacious. Not tonight.");
+                            break;
+                        }
                         if (editor.file_path.count > 0) {
                             err = editor_save(&editor);
                             if (err != 0) {
@@ -293,6 +297,7 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_DELETE: {
+                        if (editor_is_pdf(&editor)) break;
                         editor_delete(&editor);
                         editor.last_stroke = SDL_GetTicks();
                     }
@@ -349,6 +354,10 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_UP: {
+                        if (editor_is_pdf(&editor)) {
+                            editor_pdf_prev_page(&editor);
+                            break;
+                        }
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_move_paragraph_up(&editor);
@@ -360,6 +369,10 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_DOWN: {
+                        if (editor_is_pdf(&editor)) {
+                            editor_pdf_next_page(&editor);
+                            break;
+                        }
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_move_paragraph_down(&editor);
@@ -371,6 +384,10 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_LEFT: {
+                        if (editor_is_pdf(&editor)) {
+                            editor_pdf_prev_page(&editor);
+                            break;
+                        }
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_move_word_left(&editor);
@@ -382,6 +399,10 @@ int main(int argc, char **argv)
                     break;
 
                     case SDLK_RIGHT: {
+                        if (editor_is_pdf(&editor)) {
+                            editor_pdf_next_page(&editor);
+                            break;
+                        }
                         editor_update_selection(&editor, event.key.keysym.mod & KMOD_SHIFT);
                         if (event.key.keysym.mod & KMOD_CTRL) {
                             editor_move_word_right(&editor);
@@ -401,6 +422,7 @@ int main(int argc, char **argv)
                     // Nothing for now
                     // Once we have incremental search in the file browser this may become useful
                 } else {
+                    if (editor_is_pdf(&editor)) break;
                     const char *text = event.text.text;
                     size_t text_len = strlen(text);
                     for (size_t i = 0; i < text_len; ++i) {

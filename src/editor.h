@@ -6,6 +6,7 @@
 #include "free_glyph.h"
 #include "simple_renderer.h"
 #include "lexer.h"
+#include "pdf_viewer.h"
 
 #include <SDL2/SDL.h>
 
@@ -26,8 +27,14 @@ typedef struct {
     size_t capacity;
 } Tokens;
 
+typedef enum {
+    EDITOR_MODE_TEXT = 0,
+    EDITOR_MODE_PDF,
+} Editor_Mode;
+
 typedef struct {
     Free_Glyph_Atlas *atlas;
+    Editor_Mode mode;
 
     String_Builder data;
     Lines lines;
@@ -44,11 +51,16 @@ typedef struct {
     Uint32 last_stroke;
 
     String_Builder clipboard;
+
+    Pdf_Viewer pdf;
 } Editor;
 
 Errno editor_save_as(Editor *editor, const char *file_path);
 Errno editor_save(const Editor *editor);
 Errno editor_load_from_file(Editor *editor, const char *file_path);
+bool editor_is_pdf(const Editor *editor);
+void editor_pdf_next_page(Editor *editor);
+void editor_pdf_prev_page(Editor *editor);
 
 void editor_backspace(Editor *editor);
 void editor_delete(Editor *editor);
